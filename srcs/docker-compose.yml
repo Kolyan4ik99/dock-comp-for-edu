@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx/
+    networks: 
+      - cclock_net
+    env_file: .env
+    ports:
+      - "443:443"
+    volumes:
+      - wp:/var/www/html
+    depends_on:
+      - wordpress
+    restart: always
+    user: root
+  wordpress:
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    env_file: .env
+    volumes:
+      - wp:/var/www/html
+    build: ./requirements/wordpress
+    networks:
+      - cclock_net
+    restart: always
+  mariadb:
+    container_name: mariadb
+    env_file: .env
+    volumes:
+      - db:/var/lib/mysql
+    build: ./requirements/mariadb
+    networks:
+      - cclock_net
+    restart: always
+
+networks:
+  cclock_net:
+    name: cclock_net
+    driver: bridge
+
+volumes:
+  db:
+    name: db
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USERNAME}/data/db
+  wp:
+    name: wp
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USERNAME}/data/wp
